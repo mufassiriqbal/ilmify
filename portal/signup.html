@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Ilmify</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card signup-card">
+            <div class="auth-header">
+                <span class="auth-logo">📚</span>
+                <h1>Join Ilmify</h1>
+                <p class="auth-tagline">Start Your Learning Journey</p>
+            </div>
+
+            <!-- Role Selection Tabs -->
+            <div class="role-tabs">
+                <button class="role-tab active" data-role="student">
+                    🎓 Student
+                </button>
+                <button class="role-tab" data-role="faculty">
+                    👨‍🏫 Faculty
+                </button>
+            </div>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form">
+                <input type="hidden" id="userRole" name="role" value="student">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            name="firstName" 
+                            placeholder="First name"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            name="lastName" 
+                            placeholder="Last name"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="your.email@example.com"
+                        required
+                    >
+                </div>
+
+                <!-- Student-specific fields -->
+                <div id="studentFields" class="role-fields">
+                    <div class="form-group">
+                        <label for="studentId">Student ID / Roll Number</label>
+                        <input 
+                            type="text" 
+                            id="studentId" 
+                            name="studentId" 
+                            placeholder="e.g., STU-2025-001"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Class / Grade</label>
+                        <select id="grade" name="grade">
+                            <option value="">Select your class</option>
+                            <option value="6">Class 6</option>
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                            <option value="11">Class 11</option>
+                            <option value="12">Class 12</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Faculty-specific fields -->
+                <div id="facultyFields" class="role-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="employeeId">Employee ID</label>
+                        <input 
+                            type="text" 
+                            id="employeeId" 
+                            name="employeeId" 
+                            placeholder="e.g., EMP-001"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department / Subject</label>
+                        <select id="department" name="department">
+                            <option value="">Select department</option>
+                            <option value="mathematics">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="english">English</option>
+                            <option value="urdu">Urdu</option>
+                            <option value="islamiat">Islamiat</option>
+                            <option value="social-studies">Social Studies</option>
+                            <option value="computer">Computer Science</option>
+                            <option value="health">Health & PE</option>
+                            <option value="admin">Administration</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="facultyCode">Faculty Access Code</label>
+                        <input 
+                            type="text" 
+                            id="facultyCode" 
+                            name="facultyCode" 
+                            placeholder="Enter access code from admin"
+                        >
+                        <small class="form-hint">Contact administrator for faculty access code</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Create a password (min. 6 characters)"
+                        required
+                        minlength="6"
+                    >
+                    <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                        👁️
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        placeholder="Confirm your password"
+                        required
+                    >
+                </div>
+
+                <div class="form-options">
+                    <label class="terms-checkbox">
+                        <input type="checkbox" id="agreeTerms" name="terms" required>
+                        <span>I agree to the <a href="#">Terms of Use</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    Create Account
+                </button>
+
+                <div class="auth-error" id="signupError" style="display: none;">
+                    <span>⚠️</span>
+                    <p id="errorMessage">Error creating account</p>
+                </div>
+
+                <div class="auth-success" id="signupSuccess" style="display: none;">
+                    <span>✅</span>
+                    <p>Account created successfully! Redirecting to login...</p>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

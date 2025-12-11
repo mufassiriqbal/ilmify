@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ilmify - Offline Knowledge Server for Rural Schools">
+    <title>Ilmify - Education That Reaches You</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <span class="logo-icon">📚</span>
+                <div>
+                    <h1>Ilmify</h1>
+                    <p class="tagline">Education That Reaches You</p>
+                </div>
+            </div>
+            <nav class="header-nav" id="headerNav">
+                <!-- Will be populated by JS based on user role -->
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Welcome Banner -->
+            <section class="welcome-banner" id="welcomeBanner">
+                <div class="welcome-content">
+                    <h2>Welcome to Ilmify! 👋</h2>
+                    <p>Your offline knowledge hub for quality education</p>
+                </div>
+            </section>
+
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search resources... / تلاش کریں..."
+                        aria-label="Search resources"
+                    >
+                    <button id="searchBtn" class="search-btn" aria-label="Search">
+                        🔍
+                    </button>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section class="categories-section">
+                <h2 class="section-title">Browse by Category</h2>
+                <div class="categories-grid">
+                    <button class="category-card" data-category="textbooks">
+                        <div class="category-icon">📖</div>
+                        <h3>School Textbooks</h3>
+                        <p>نصابی کتابیں</p>
+                        <span class="resource-count" id="textbooks-count">0 resources</span>
+                    </button>
+
+                    <button class="category-card" data-category="videos">
+                        <div class="category-icon">🎬</div>
+                        <h3>Video Lectures</h3>
+                        <p>ویڈیو لیکچرز</p>
+                        <span class="resource-count" id="videos-count">0 resources</span>
+                    </button>
+
+                    <button class="category-card" data-category="health-guides">
+                        <div class="category-icon">🏥</div>
+                        <h3>Health Guides</h3>
+                        <p>صحت کے رہنما</p>
+                        <span class="resource-count" id="health-guides-count">0 resources</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Resources Section -->
+            <section class="resources-section" id="resourcesSection">
+                <div class="resources-header">
+                    <h2 class="section-title" id="resourcesTitle">All Resources</h2>
+                    <button class="back-btn" id="backBtn" style="display: none;">
+                        ← Back to Categories
+                    </button>
+                </div>
+                <div class="resources-grid" id="resourcesGrid">
+                    <!-- Resources will be dynamically loaded here -->
+                </div>
+                <div class="no-results" id="noResults" style="display: none;">
+                    <span class="no-results-icon">🔍</span>
+                    <p>No resources found. Try a different search term.</p>
+                    <p>کوئی نتائج نہیں ملے۔ دوسرے الفاظ سے تلاش کریں۔</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Ilmify - Education That Reaches You</p>
+            <p class="footer-urdu">تعلیم جو آپ تک پہنچے</p>
+        </div>
+    </footer>
+
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal" style="display: none;">
+        <div class="modal-content upload-modal">
+            <div class="modal-header">
+                <h3>📤 Upload Resource</h3>
+                <button class="modal-close" onclick="closeUploadModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm" onsubmit="handleUpload(event)">
+                    <div class="form-group">
+                        <label for="resourceTitle">Title / عنوان</label>
+                        <input type="text" id="resourceTitle" name="title" required placeholder="Enter resource title">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="resourceCategory">Category / زمرہ</label>
+                        <select id="resourceCategory" name="category" required>
+                            <option value="">Select category</option>
+                            <option value="textbooks">📖 Textbooks</option>
+                            <option value="videos">🎬 Videos</option>
+                            <option value="health-guides">🏥 Health Guides</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>File / فائل</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input type="file" id="resourceFile" name="file" accept=".pdf,.mp4,.webm,.mkv" hidden>
+                            <div id="fileUploadContent">
+                                <span class="upload-icon">📁</span>
+                                <p>Click or drag file here</p>
+                                <p class="upload-hint">PDF, MP4, WebM, MKV (Max 500MB)</p>
+                            </div>
+                            <div id="fileSelected" style="display: none;">
+                                <span class="file-icon">📄</span>
+                                <span class="file-name" id="selectedFileName"></span>
+                                <span class="file-size" id="selectedFileSize"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span class="progress-text" id="progressText">Uploading...</span>
+                    </div>
+                    
+                    <div class="form-error" id="uploadError" style="display: none;">
+                        <span>⚠️</span>
+                        <p id="uploadErrorText"></p>
+                    </div>
+                    
+                    <div class="form-success" id="uploadSuccess" style="display: none;">
+                        <span>✅</span>
+                        <p>Resource uploaded successfully!</p>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        📤 Upload Resource
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal" style="display: none;">
+        <div class="modal-content delete-modal">
+            <div class="modal-header">
+                <h3>🗑️ Delete Resource</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete:</p>
+                <p class="delete-resource-name" id="deleteResourceName"></p>
+                <p class="delete-warning">⚠️ This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Modal (Admin Only) -->
+    <div class="modal" id="userModal" style="display: none;">
+        <div class="modal-content user-modal">
+            <div class="modal-header">
+                <h3>👥 User Management</h3>
+                <button class="modal-close" onclick="closeUserModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-type-tabs">
+                    <button class="user-type-tab active" onclick="switchUserTab('student')">👨‍🎓 Students</button>
+                    <button class="user-type-tab" onclick="switchUserTab('faculty')">👨‍🏫 Faculty</button>
+                </div>
+                
+                <div class="add-user-section">
+                    <h4 id="addUserTitle">➕ Add New Student</h4>
+                    <form id="addUserForm" onsubmit="handleAddUser(event)">
+                        <div class="form-row">
+                            <input type="text" id="newUserFirstName" placeholder="First Name" required>
+                            <input type="text" id="newUserLastName" placeholder="Last Name" required>
+                        </div>
+                        <input type="email" id="newUserEmail" placeholder="Email" required>
+                        <input type="password" id="newUserPassword" placeholder="Password (min 6 chars)" minlength="6" required>
+                        <div id="studentFieldsAdd">
+                            <input type="text" id="newUserGrade" placeholder="Grade/Class (e.g., 9, 10)">
+                        </div>
+                        <div id="facultyFieldsAdd" style="display: none;">
+                            <input type="text" id="newUserDepartment" placeholder="Department">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="addUserBtn">➕ Add Student</button>
+                    </form>
+                    <div class="user-message" id="userMessage" style="display: none;"></div>
+                </div>
+                
+                <div class="user-list-section">
+                    <h4>📋 <span id="userListTitle">Students</span> List</h4>
+                    <div class="user-list" id="userList">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Activity Modal (Admin Only) -->
+    <div class="modal" id="loginActivityModal" style="display: none;">
+        <div class="modal-content login-activity-modal">
+            <div class="modal-header">
+                <h3>🔐 Login Activity</h3>
+                <button class="modal-close" onclick="closeLoginActivityModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="login-activity-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="loadLoginActivity()">🔄 Refresh</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearLoginActivity()">🗑️ Clear All</button>
+                </div>
+                <div class="login-activity-body" id="loginActivityList">
+                    <!-- Login activity entries will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Chatbot Floating Action Button -->
+    <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()" title="Ask Ilmify Assistant">
+        <span class="fab-pulse"></span>
+        💬
+    </button>
+
+    <!-- Chat Modal -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <div class="chat-header-avatar">🤖</div>
+            <div class="chat-header-info">
+                <h4>Ilmify Assistant</h4>
+                <span>Online - Ready to help</span>
+            </div>
+            <button class="chat-close" onclick="closeChatbot()">✕</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+        
+        <div class="chat-quick-questions" id="quickQuestions">
+            <div class="quick-questions-label">Quick Questions:</div>
+            <div class="quick-questions-list">
+                <button class="quick-question-btn" onclick="askQuickQuestion('What textbooks do you have?')">📚 Textbooks</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Show me video lectures')">🎬 Videos</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Health guides available?')">🏥 Health</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('What subjects are covered?')">📋 Subjects</button>
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Type your question..."
+                onkeypress="handleChatKeypress(event)"
+            >
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/faculty.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script>
+        // Initialize header navigation based on user role
+        document.addEventListener('DOMContentLoaded', () => {
+            const headerNav = document.getElementById('headerNav');
+            const session = IlmifyAuth.getSession();
+            
+            if (!session) {
+                headerNav.innerHTML = `
+                    <a href="login.html" class="nav-btn login-btn">🔐 Login</a>
+                `;
+            } else {
+                let navItems = `<span class="user-greeting">👋 ${session.name}</span>`;
+                
+                // Faculty/Admin can upload
+                if (session.role === 'faculty' || session.role === 'admin' || session.isAdmin) {
+                    navItems += `<button class="nav-btn" onclick="openUploadModal()">📤 Upload</button>`;
+                }
+                
+                // Admin only features
+                if (session.isAdmin) {
+                    navItems += `<button class="nav-btn" onclick="openUserModal()">👥 Users</button>`;
+                    navItems += `<button class="nav-btn" onclick="openLoginActivityModal()">🔐 Activity</button>`;
+                }
+                
+                navItems += `<button class="nav-btn logout-btn" onclick="IlmifyAuth.logout()">🚪 Logout</button>`;
+                
+                headerNav.innerHTML = navItems;
+            }
+            
+            // Setup file upload handlers
+            if (typeof setupFileUpload === 'function') {
+                setupFileUpload();
+            }
+        });
+    </script>
+</body>
+</html>

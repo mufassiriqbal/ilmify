@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ilmify - Offline Knowledge Server for Rural Schools">
+    <title>Ilmify - Education That Reaches You</title>
+    <link rel="stylesheet" href="portal/css/style.css">
+    <link rel="stylesheet" href="portal/css/auth.css">
+    <script src="portal/js/auth.js"></script>
+    <script>
+        // Check login before page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.IlmifyAuth || !window.IlmifyAuth.isLoggedIn()) {
+                window.location.href = 'portal/login.html';
+            }
+        });
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <span class="logo-icon">📚</span>
+                <h1>Ilmify</h1>
+                <p class="tagline">Education That Reaches You</p>
+            </div>
+            <!-- User Menu -->
+            <div class="user-menu" id="userMenu">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Faculty Control Panel (Only visible to faculty/admin) -->
+            <section class="faculty-panel" id="facultyPanel" style="display: none;">
+                <div class="faculty-buttons">
+                    <button class="upload-btn" onclick="openUploadModal()">
+                        ➕ Add Resource
+                    </button>
+                    <button class="manage-btn" id="manageUsersBtn" onclick="openUserModal()" style="display: none;">
+                        👥 Manage Users
+                    </button>
+                </div>
+            </section>
+
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search resources... / تلاش کریں..."
+                        aria-label="Search resources"
+                    >
+                    <button id="searchBtn" class="search-btn" aria-label="Search">
+                        🔍
+                    </button>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section class="categories-section">
+                <h2 class="section-title">Browse by Category</h2>
+                <div class="categories-grid">
+                    <button class="category-card" data-category="textbooks">
+                        <div class="category-icon">📖</div>
+                        <h3>School Textbooks</h3>
+                        <p>نصابی کتابیں</p>
+                        <span class="resource-count" id="textbooks-count">0 resources</span>
+                    </button>
+
+                    <button class="category-card" data-category="videos">
+                        <div class="category-icon">🎬</div>
+                        <h3>Video Lectures</h3>
+                        <p>ویڈیو لیکچرز</p>
+                        <span class="resource-count" id="videos-count">0 resources</span>
+                    </button>
+
+                    <button class="category-card" data-category="health-guides">
+                        <div class="category-icon">🏥</div>
+                        <h3>Health Guides</h3>
+                        <p>صحت کے رہنما</p>
+                        <span class="resource-count" id="health-guides-count">0 resources</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Resources Section -->
+            <section class="resources-section" id="resourcesSection">
+                <div class="resources-header">
+                    <h2 class="section-title" id="resourcesTitle">All Resources</h2>
+                    <button class="back-btn" id="backBtn" style="display: none;">
+                        ← Back to Categories
+                    </button>
+                </div>
+                <div class="resources-grid" id="resourcesGrid">
+                    <!-- Resources will be dynamically loaded here -->
+                </div>
+                <div class="no-results" id="noResults" style="display: none;">
+                    <span class="no-results-icon">🔍</span>
+                    <p>No resources found. Try a different search term.</p>
+                    <p>کوئی نتائج نہیں ملے۔ دوسرے الفاظ سے تلاش کریں۔</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Upload Modal (Faculty Only) -->
+    <div class="modal-overlay" id="uploadModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📤 Add New Resource</h2>
+                <button class="modal-close" onclick="closeUploadModal()">✕</button>
+            </div>
+            <form id="uploadForm" class="upload-form">
+                <div class="form-group">
+                    <label for="resourceTitle">Resource Title *</label>
+                    <input 
+                        type="text" 
+                        id="resourceTitle" 
+                        name="title" 
+                        placeholder="e.g., 9th Grade Mathematics"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="resourceCategory">Category *</label>
+                    <select id="resourceCategory" name="category" required>
+                        <option value="">Select category</option>
+                        <option value="textbooks">📖 School Textbooks</option>
+                        <option value="videos">🎬 Video Lectures</option>
+                        <option value="health-guides">🏥 Health Guides</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="resourceFile">Upload File *</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <input 
+                            type="file" 
+                            id="resourceFile" 
+                            name="file" 
+                            accept=".pdf,.mp4,.webm,.mkv"
+                            required
+                            hidden
+                        >
+                        <div class="file-upload-content" id="fileUploadContent">
+                            <span class="file-icon">📁</span>
+                            <p>Click to select or drag & drop</p>
+                            <p class="file-hint">PDF, MP4, WebM (Max 500MB)</p>
+                        </div>
+                        <div class="file-selected" id="fileSelected" style="display: none;">
+                            <span class="file-icon">✅</span>
+                            <p id="selectedFileName">filename.pdf</p>
+                            <button type="button" class="remove-file" onclick="removeSelectedFile()">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="resourceDescription">Description (Optional)</label>
+                    <textarea 
+                        id="resourceDescription" 
+                        name="description" 
+                        rows="3"
+                        placeholder="Brief description of the resource..."
+                    ></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <span id="uploadBtnText">Upload Resource</span>
+                        <span id="uploadSpinner" style="display: none;">Uploading...</span>
+                    </button>
+                </div>
+
+                <!-- Upload Progress Bar -->
+                <div class="upload-progress" id="uploadProgress" style="display: none;">
+                    <div class="progress-label">Uploading...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+
+                <div class="upload-error" id="uploadError" style="display: none;">
+                    <span>⚠️</span>
+                    <p id="uploadErrorMsg">Error uploading file</p>
+                </div>
+
+                <div class="upload-success" id="uploadSuccess" style="display: none;">
+                    <span>✅</span>
+                    <p>Resource uploaded successfully!</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal (Faculty Only) -->
+    <div class="modal-overlay" id="deleteModal" style="display: none;">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h2>🗑️ Delete Resource</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this resource?</p>
+                <p class="delete-resource-name" id="deleteResourceName"></p>
+                <p class="warning-text">This action cannot be undone.</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Modal (Admin Only) -->
+    <div class="modal-overlay" id="userModal" style="display: none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>👥 Manage Users</h2>
+                <button class="modal-close" onclick="closeUserModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- User Type Tabs -->
+                <div class="user-type-tabs">
+                    <button class="user-tab active" data-type="student" onclick="switchUserTab('student')">🎓 Students</button>
+                    <button class="user-tab" data-type="faculty" onclick="switchUserTab('faculty')">👨‍🏫 Faculty</button>
+                </div>
+
+                <!-- Add User Form -->
+                <div class="add-user-section">
+                    <h3 id="addUserTitle">➕ Add New Student</h3>
+                    <form id="addUserForm" class="add-user-form">
+                        <input type="hidden" id="newUserType" value="student">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newUserFirstName">First Name *</label>
+                                <input type="text" id="newUserFirstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newUserLastName">Last Name *</label>
+                                <input type="text" id="newUserLastName" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="newUserEmail">Email *</label>
+                                <input type="email" id="newUserEmail" required>
+                            </div>
+                            <div class="form-group" id="gradeField">
+                                <label for="newUserGrade">Class/Grade</label>
+                                <select id="newUserGrade">
+                                    <option value="">Select</option>
+                                    <option value="6">Class 6</option>
+                                    <option value="7">Class 7</option>
+                                    <option value="8">Class 8</option>
+                                    <option value="9">Class 9</option>
+                                    <option value="10">Class 10</option>
+                                    <option value="11">Class 11</option>
+                                    <option value="12">Class 12</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="departmentField" style="display: none;">
+                                <label for="newUserDepartment">Department</label>
+                                <select id="newUserDepartment">
+                                    <option value="">Select</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="English">English</option>
+                                    <option value="Urdu">Urdu</option>
+                                    <option value="Social Studies">Social Studies</option>
+                                    <option value="Computer">Computer</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserPassword">Password *</label>
+                            <input type="password" id="newUserPassword" required minlength="6" placeholder="Minimum 6 characters">
+                        </div>
+                        <button type="submit" class="btn-primary" id="addUserBtn">Add Student</button>
+                    </form>
+                    <div class="add-user-message" id="addUserMessage" style="display: none;"></div>
+                </div>
+
+                <!-- User List -->
+                <div class="user-list-section">
+                    <h3 id="userListTitle">📋 Registered Students</h3>
+                    <div class="user-list" id="userList">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Ilmify - Education That Reaches You</p>
+            <p class="footer-urdu">تعلیم جو آپ تک پہنچے</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot Floating Button -->
+    <button class="chatbot-fab" onclick="openChatbot()" title="Ask Study Assistant">
+        <span class="fab-icon">💬</span>
+        <span class="fab-pulse"></span>
+    </button>
+
+    <!-- Chatbot Modal -->
+    <div id="chatModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 16px; width: 90%; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <!-- Header -->
+            <div style="background: #0A1F44; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">🤖</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px;">Ilmify Assistant</h3>
+                        <span style="font-size: 12px; opacity: 0.8;">Online • Ready to help</span>
+                    </div>
+                </div>
+                <button onclick="closeChatbot()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✕</button>
+            </div>
+            
+            <!-- Messages -->
+            <div id="chatMessages" style="flex: 1; padding: 16px; overflow-y: auto; min-height: 200px; background: #f5f5f5;">
+                <!-- Messages will be added here -->
+            </div>
+            
+            <!-- Quick Questions -->
+            <div style="padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #ddd;">
+                <button onclick="askQuickQuestion('Show me textbooks')" style="padding: 6px 12px; border: 1px solid #0A1F44; background: white; border-radius: 20px; cursor: pointer; font-size: 12px;">📚 Textbooks</button>
+                <button onclick="askQuickQuestion('Show me videos')" style="padding: 6px 12px; border: 1px solid #0A1F44; background: white; border-radius: 20px; cursor: pointer; font-size: 12px;">🎬 Videos</button>
+                <button onclick="askQuickQuestion('What resources?')" style="padding: 6px 12px; border: 1px solid #0A1F44; background: white; border-radius: 20px; cursor: pointer; font-size: 12px;">📋 Resources</button>
+            </div>
+            
+            <!-- Input Area -->
+            <div style="padding: 12px 16px; border-top: 1px solid #ddd; display: flex; gap: 8px;">
+                <input type="text" id="chatInput" placeholder="Type your question..." style="flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 24px; outline: none; font-size: 14px;">
+                <button id="chatSendBtn" onclick="sendMessage()" style="width: 44px; height: 44px; border-radius: 50%; background: #F7B500; border: none; cursor: pointer; font-size: 18px;">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="portal/js/main.js"></script>
+    <script src="portal/js/faculty.js"></script>
+    <script src="portal/js/chatbot.js"></script>
+    <script>
+        // Initialize user menu and faculty features
+        document.addEventListener('DOMContentLoaded', () => {
+            // Redirect if not logged in
+            if (!window.IlmifyAuth || !window.IlmifyAuth.isLoggedIn()) {
+                window.location.href = 'portal/login.html';
+                return;
+            }
+            updateUserMenu();
+            initFacultyFeatures();
+        });
+
+        function updateUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            const session = IlmifyAuth.getSession();
+
+            if (session) {
+                const isAdmin = session.isAdmin;
+                const roleIcon = isAdmin ? '👑' : (session.role === 'faculty' ? '👨‍🏫' : '🎓');
+                const roleLabel = isAdmin ? 'Admin' : session.role;
+                const roleBadge = isAdmin ? '<span class="admin-badge">Admin</span>' : 
+                                  (session.role === 'faculty' ? '<span class="faculty-badge">Faculty</span>' : '');
+                
+                userMenu.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-avatar">${roleIcon}</div>
+                        <div>
+                            <div class="user-name">${session.name} ${roleBadge}</div>
+                            <div class="user-role">${roleLabel}</div>
+                        </div>
+                    </div>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                `;
+            } else {
+                window.location.href = 'portal/login.html';
+            }
+        }
+
+        function initFacultyFeatures() {
+            const session = IlmifyAuth.getSession();
+            const facultyPanel = document.getElementById('facultyPanel');
+            const manageUsersBtn = document.getElementById('manageUsersBtn');
+            
+            // Show faculty panel for admin and faculty
+            if (session && (session.isAdmin || session.role === 'faculty' || session.role === 'admin')) {
+                facultyPanel.style.display = 'block';
+                
+                // Only show manage users button for admin
+                if (manageUsersBtn) {
+                    manageUsersBtn.style.display = session.isAdmin ? 'flex' : 'none';
+                }
+            } else {
+                facultyPanel.style.display = 'none';
+            }
+        }
+
+        function handleLogout() {
+            IlmifyAuth.logout();
+        }
+
+        // Toast notification helper
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span class="toast-message">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Remove after duration
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        window.showToast = showToast;
+    </script>
+</body>
+</html>

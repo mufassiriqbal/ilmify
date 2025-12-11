@@ -1,0 +1,65 @@
+[
+    {
+        "id": 1,
+        "title": "Grade 12",
+        "filepath": "content/health-guides/grade-12.pdf",
+        "format": "pdf",
+        "category": "health-guides"
+    },
+    {
+        "id": 2,
+        "title": "Heatlhy Living Guide20 21.1",
+        "filepath": "content/health-guides/HeatlhyLivingGuide20-21.1.pdf",
+        "format": "pdf",
+        "category": "health-guides"
+    },
+    {
+        "id": 3,
+        "title": "1st Year English Kpk Board 2020 New Edition",
+        "filepath": "content/textbooks/1st Year English KPK Board 2020 New Edition.pdf",
+        "format": "pdf",
+        "category": "textbooks"
+    },
+    {
+        "id": 4,
+        "title": "Class 12",
+        "filepath": "content/textbooks/class-12.pdf",
+        "format": "pdf",
+        "category": "textbooks"
+    },
+    {
+        "id": 5,
+        "title": "Cv",
+        "filepath": "content/textbooks/cv.pdf",
+        "format": "pdf",
+        "category": "textbooks"
+    },
+    {
+        "id": 6,
+        "title": "Project Proposal1",
+        "filepath": "content/textbooks/Project Proposal1.pdf",
+        "format": "pdf",
+        "category": "textbooks"
+    },
+    {
+        "id": 7,
+        "title": "Tasks Assigned To All Startups",
+        "filepath": "content/textbooks/Tasks Assigned to All Startups.pdf",
+        "format": "pdf",
+        "category": "textbooks"
+    },
+    {
+        "id": 8,
+        "title": "Opening Face To Camera “hi",
+        "filepath": "content/videos/Opening_Face_to_Camera__“Hi.mp4",
+        "format": "mp4",
+        "category": "videos"
+    },
+    {
+        "id": 9,
+        "title": "Rural Schools Lack Internet Access",
+        "filepath": "content/videos/Rural_Schools_Lack_Internet_Access.mp4",
+        "format": "mp4",
+        "category": "videos"
+    }
+]
