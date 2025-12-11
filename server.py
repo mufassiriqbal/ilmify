@@ -70,16 +70,20 @@ CATEGORY_MAPPING = {
     'healthguides': 'health-guides',
 }
 
-# Watch interval in seconds
-WATCH_INTERVAL = 3
+# Watch interval in seconds (increased for performance)
+WATCH_INTERVAL = 10
 
 
 # ============================================
-# USER TRACKING SYSTEM
+# USER TRACKING SYSTEM WITH RATE LIMITING
 # ============================================
+
+# Rate limiting configuration
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX_REQUESTS = 120  # max requests per window per IP
 
 class UserTracker:
-    """Thread-safe user activity tracking."""
+    """Thread-safe user activity tracking with rate limiting."""
     
     def __init__(self):
         self._lock = threading.Lock()
@@ -88,6 +92,30 @@ class UserTracker:
         self._total_unique_ips = set()
         self._error_count = 0
         self._start_time = time.time()
+        self._rate_limits = {}  # ip -> {count, window_start}
+    
+    def check_rate_limit(self, client_ip):
+        """Check if client is rate limited. Returns True if allowed."""
+        with self._lock:
+            current_time = time.time()
+            
+            if client_ip not in self._rate_limits:
+                self._rate_limits[client_ip] = {'count': 1, 'window_start': current_time}
+                return True
+            
+            rate_data = self._rate_limits[client_ip]
+            
+            # Reset window if expired
+            if current_time - rate_data['window_start'] > RATE_LIMIT_WINDOW:
+                self._rate_limits[client_ip] = {'count': 1, 'window_start': current_time}
+                return True
+            
+            # Check if over limit
+            if rate_data['count'] >= RATE_LIMIT_MAX_REQUESTS:
+                return False
+            
+            rate_data['count'] += 1
+            return True
     
     def record_activity(self, client_ip, user_agent='', path=''):
         """Record user activity."""
@@ -382,15 +410,26 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
             # Don't crash - isolate errors from other users
     
     def do_GET(self):
-        """Handle GET requests with user tracking."""
+        """Handle GET requests with user tracking and rate limiting."""
         try:
             client_ip = self.client_address[0]
+            
+            # Rate limit check (skip for static assets)
+            if not self.path.endswith(('.css', '.js', '.json', '.png', '.jpg', '.ico', '.woff', '.woff2')):
+                if not user_tracker.check_rate_limit(client_ip):
+                    self._send_error_response(429, "Too many requests. Please slow down.")
+                    return
+            
             user_agent = self.headers.get('User-Agent', '')
             user_tracker.record_activity(client_ip, user_agent, self.path)
             
             # Handle API endpoints
             if self.path == '/api/stats':
                 self.handle_admin_stats()
+                return
+            
+            if self.path == '/api/courses':
+                self.handle_get_courses()
                 return
             
             # Serve static files
@@ -413,6 +452,8 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
                 self.handle_semantic_search()
             elif self.path == '/api/heartbeat':
                 self.handle_heartbeat()
+            elif self.path == '/api/courses':
+                self.handle_save_courses()
             else:
                 self.send_error(404, "Not Found")
                 
@@ -434,6 +475,38 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
             client_ip = self.client_address[0]
             user_tracker.record_activity(client_ip)
             self.send_json_response(200, {'status': 'ok', 'timestamp': time.time()})
+        except Exception as e:
+            self.send_json_response(500, {'error': str(e)})
+    
+    def handle_get_courses(self):
+        """Return courses from server storage."""
+        try:
+            courses_file = SCRIPT_DIR / 'portal' / 'data' / 'courses.json'
+            if courses_file.exists():
+                with open(courses_file, 'r', encoding='utf-8') as f:
+                    courses = json.load(f)
+                self.send_json_response(200, {'success': True, 'courses': courses})
+            else:
+                self.send_json_response(200, {'success': True, 'courses': []})
+        except Exception as e:
+            self.send_json_response(500, {'error': str(e)})
+    
+    def handle_save_courses(self):
+        """Save courses to server storage."""
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode('utf-8'))
+            
+            courses = data.get('courses', [])
+            
+            courses_file = SCRIPT_DIR / 'portal' / 'data' / 'courses.json'
+            courses_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(courses_file, 'w', encoding='utf-8') as f:
+                json.dump(courses, f, indent=2, ensure_ascii=False)
+            
+            self.send_json_response(200, {'success': True, 'message': 'Courses saved'})
         except Exception as e:
             self.send_json_response(500, {'error': str(e)})
     
@@ -576,6 +649,7 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', len(response))
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Cache-Control', 'no-store')
             self.end_headers()
             self.wfile.write(response)
         except Exception:
@@ -588,6 +662,25 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
         except Exception:
             pass
     
+    def end_headers(self):
+        """Add caching headers for static files."""
+        path = self.path.split('?')[0]
+        
+        # Cache static assets for 1 hour
+        if path.endswith(('.css', '.js', '.woff', '.woff2', '.ttf')):
+            self.send_header('Cache-Control', 'public, max-age=3600')
+        # Cache images for 1 day
+        elif path.endswith(('.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg')):
+            self.send_header('Cache-Control', 'public, max-age=86400')
+        # Cache PDFs/videos for 1 hour
+        elif path.endswith(('.pdf', '.mp4', '.webm')):
+            self.send_header('Cache-Control', 'public, max-age=3600')
+        # Don't cache HTML and JSON (dynamic content)
+        elif path.endswith(('.html', '.json')):
+            self.send_header('Cache-Control', 'no-cache, must-revalidate')
+        
+        super().end_headers()
+    
     def do_OPTIONS(self):
         """Handle CORS preflight."""
         self.send_response(200)
@@ -597,11 +690,15 @@ class ThreadedHTTPHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
     
     def log_message(self, format_str, *args):
-        """Custom logging."""
+        """Custom logging - reduced for performance."""
         try:
             if len(args) >= 1 and isinstance(args[0], str):
+                request = args[0]
+                # Skip logging static assets to reduce console output
+                if any(ext in request for ext in ['.css', '.js', '.json', '.ico', '.png', '.jpg', '.woff']):
+                    return
                 timestamp = datetime.now().strftime("%H:%M:%S")
-                print(f"🌐 [{timestamp}] {args[0]}")
+                print(f"🌐 [{timestamp}] {request}")
         except (IndexError, TypeError):
             pass
     

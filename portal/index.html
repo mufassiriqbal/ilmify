@@ -83,7 +83,19 @@
                         <p>کورسز</p>
                         <span class="resource-count" id="courses-count">Interactive learning</span>
                     </button>
+
+                    <button class="category-card" data-category="quiz" onclick="document.getElementById('quizSection').scrollIntoView({behavior: 'smooth'})">
+                        <div class="category-icon">🎯</div>
+                        <h3>Practice Quiz</h3>
+                        <p>سوالات کی مشق</p>
+                        <span class="resource-count">Test your knowledge</span>
+                    </button>
                 </div>
+            </section>
+
+            <!-- Quiz Section -->
+            <section class="quiz-section" id="quizSection">
+                <!-- Quiz content will be dynamically loaded by quiz.js -->
             </section>
 
             <!-- Courses Section -->
@@ -425,6 +437,7 @@
                 <h4>Ilmify Assistant</h4>
                 <span>Online - Ready to help</span>
             </div>
+            <button class="chat-header-btn" onclick="clearChat()" title="Clear Chat">🗑️</button>
             <button class="chat-close" onclick="closeChatbot()">✕</button>
         </div>
         
@@ -433,12 +446,14 @@
         </div>
         
         <div class="chat-quick-questions" id="quickQuestions">
-            <div class="quick-questions-label">Quick Questions:</div>
+            <div class="quick-questions-label">Quick Actions:</div>
             <div class="quick-questions-list">
-                <button class="quick-question-btn" onclick="askQuickQuestion('What textbooks do you have?')">📚 Textbooks</button>
-                <button class="quick-question-btn" onclick="askQuickQuestion('Show me video lectures')">🎬 Videos</button>
-                <button class="quick-question-btn" onclick="askQuickQuestion('Health guides available?')">🏥 Health</button>
-                <button class="quick-question-btn" onclick="askQuickQuestion('What subjects are covered?')">📋 Subjects</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Quiz me!')">🎯 Quiz</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Define knowledge')">📖 Dictionary</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Health tips')">🏥 Health</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Tell me a joke')">😄 Fun</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('Motivate me')">💪 Inspire</button>
+                <button class="quick-question-btn" onclick="askQuickQuestion('help')">❓ Help</button>
             </div>
         </div>
         
@@ -447,7 +462,7 @@
                 type="text" 
                 class="chat-input" 
                 id="chatInput" 
-                placeholder="Type your question..."
+                placeholder="Ask me anything... (e.g., What is photosynthesis?)"
                 onkeypress="handleChatKeypress(event)"
             >
             <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
@@ -460,6 +475,7 @@
     <script src="js/main.js"></script>
     <script src="js/faculty.js"></script>
     <script src="js/courses.js"></script>
+    <script src="js/quiz.js"></script>
     <script src="js/chatbot.js"></script>
     <script>
         // Initialize header navigation based on user role

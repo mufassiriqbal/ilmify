@@ -27,9 +27,26 @@
             </div>
             <!-- Notification Bell & User Menu -->
             <div class="header-actions">
-                <div class="notification-bell" id="notificationBell" onclick="toggleNotificationPanel()">
-                    <span class="bell-icon">🔔</span>
-                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                <div class="notification-bell-wrapper">
+                    <div class="notification-bell" id="notificationBell" onclick="toggleNotificationPanel()">
+                        <span class="bell-icon">🔔</span>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                        <span class="notification-dot" id="notificationDot" style="display: none;"></span>
+                    </div>
+                    <!-- Notification Panel (Dropdown) -->
+                    <div class="notification-panel" id="notificationPanel" style="display: none;">
+                        <div class="notification-panel-arrow"></div>
+                        <div class="notification-panel-header">
+                            <h3>🔔 Notifications</h3>
+                            <div class="notification-header-actions">
+                                <button onclick="clearAllNotifications()" class="clear-all-btn">Clear All</button>
+                                <button onclick="closeNotificationPanel()" class="modal-close notification-close-btn">✕</button>
+                            </div>
+                        </div>
+                        <div class="notification-panel-body" id="notificationPanelBody">
+                            <p class="no-notifications">No notifications yet</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="user-menu" id="userMenu">
                     <!-- Will be populated by JavaScript -->
@@ -37,17 +54,6 @@
             </div>
         </div>
     </header>
-
-    <!-- Notification Panel (Dropdown) -->
-    <div class="notification-panel" id="notificationPanel" style="display: none;">
-        <div class="notification-panel-header">
-            <h3>🔔 Notifications</h3>
-            <button onclick="clearAllNotifications()" class="clear-all-btn">Clear All</button>
-        </div>
-        <div class="notification-panel-body" id="notificationPanelBody">
-            <p class="no-notifications">No notifications yet</p>
-        </div>
-    </div>
 
     <main class="main-content">
         <div class="container">
@@ -149,7 +155,7 @@
 
                     <button class="category-card gpt-card coming-soon-card" onclick="showComingSoon('AI Assistant')">
                         <div class="category-icon">🤖</div>
-                        <h3>AI Assistant</h3>
+                        <h3>Your GPT</h3>
                         <p>اے آئی اسسٹنٹ</p>
                         <span class="resource-count coming-soon-badge">Coming Soon</span>
                     </button>
@@ -744,9 +750,9 @@
                 }
             }
             
-            // Start checking for notifications
+            // Start checking for notifications (disabled for performance)
             checkForNotifications();
-            setInterval(checkForNotifications, 3000);
+            // setInterval(checkForNotifications, 10000); // Disabled - use manual refresh
         }
 
         // ==================== Notification System ====================
@@ -902,6 +908,10 @@
             }
         }
 
+        function closeNotificationPanel() {
+            document.getElementById('notificationPanel').style.display = 'none';
+        }
+
         function loadNotificationPanel() {
             const body = document.getElementById('notificationPanelBody');
             const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
@@ -974,7 +984,9 @@
 
         function updateNotificationBadge() {
             const badge = document.getElementById('notificationBadge');
-            if (!badge) return;
+            const bell = document.getElementById('notificationBell');
+            const dot = document.getElementById('notificationDot');
+            if (!badge || !bell) return;
             
             const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
             const seenIds = JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || '[]');
@@ -984,8 +996,12 @@
             if (unreadCount > 0) {
                 badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
                 badge.style.display = 'flex';
+                if (dot) dot.style.display = 'block';
+                bell.classList.add('has-notifications');
             } else {
                 badge.style.display = 'none';
+                if (dot) dot.style.display = 'none';
+                bell.classList.remove('has-notifications');
             }
         }
 
@@ -1000,9 +1016,17 @@
         // Close notification panel when clicking outside
         document.addEventListener('click', function(e) {
             const panel = document.getElementById('notificationPanel');
-            const bell = document.getElementById('notificationBell');
+            const wrapper = document.querySelector('.notification-bell-wrapper');
             if (panel && panel.style.display === 'block' && 
-                !panel.contains(e.target) && !bell.contains(e.target)) {
+                wrapper && !wrapper.contains(e.target)) {
+                panel.style.display = 'none';
+            }
+        });
+
+        // Close notification panel when scrolling
+        window.addEventListener('scroll', function() {
+            const panel = document.getElementById('notificationPanel');
+            if (panel && panel.style.display === 'block') {
                 panel.style.display = 'none';
             }
         });
@@ -1033,9 +1057,9 @@
                     const data = await response.json();
                     sessionId = data.session_id;
                     
-                    // Start heartbeat every 15 seconds
-                    if (heartbeatInterval) clearInterval(heartbeatInterval);
-                    heartbeatInterval = setInterval(sendHeartbeat, 15000);
+                    // Heartbeat disabled for performance
+                    // if (heartbeatInterval) clearInterval(heartbeatInterval);
+                    // heartbeatInterval = setInterval(sendHeartbeat, 30000);
                     
                     console.log('📡 Session registered:', sessionId);
                 }
@@ -1062,9 +1086,9 @@
         function initAdminStats() {
             refreshUserStats();
             
-            // Refresh stats every 10 seconds
-            if (statsRefreshInterval) clearInterval(statsRefreshInterval);
-            statsRefreshInterval = setInterval(refreshUserStats, 10000);
+            // Stats refresh disabled for performance - use manual refresh button
+            // if (statsRefreshInterval) clearInterval(statsRefreshInterval);
+            // statsRefreshInterval = setInterval(refreshUserStats, 60000);
         }
 
         async function refreshUserStats() {

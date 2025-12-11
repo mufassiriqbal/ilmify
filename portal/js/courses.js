@@ -43,8 +43,8 @@
     }
 
     // Initialize courses module
-    function init() {
-        loadCourses();
+    async function init() {
+        await loadCourses();
         
         // Check if we're on the courses page or main page
         const isCoursesPage = window.location.pathname.includes('courses.html');
@@ -58,8 +58,27 @@
         setupEventListeners();
     }
 
-    // Load courses from localStorage
-    function loadCourses() {
+    // Load courses from server (with localStorage fallback)
+    async function loadCourses() {
+        try {
+            // Try to load from server first
+            const response = await fetch('/api/courses');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.courses && data.courses.length > 0) {
+                    coursesData = data.courses;
+                    // Also update localStorage as cache
+                    localStorage.setItem(COURSES_KEY, JSON.stringify(coursesData));
+                    filteredCourses = [...coursesData];
+                    console.log('Courses loaded from server:', coursesData.length);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.log('Server unavailable, using localStorage');
+        }
+        
+        // Fallback to localStorage
         try {
             const saved = localStorage.getItem(COURSES_KEY);
             if (saved) {
@@ -84,12 +103,24 @@
         }
     }
 
-    // Save courses to localStorage
-    function saveCourses() {
+    // Save courses to server and localStorage
+    async function saveCourses() {
         try {
+            // Save to localStorage first (always works)
             localStorage.setItem(COURSES_KEY, JSON.stringify(coursesData));
+            
+            // Then try to sync to server
+            const response = await fetch('/api/courses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ courses: coursesData })
+            });
+            
+            if (response.ok) {
+                console.log('Courses synced to server');
+            }
         } catch (e) {
-            console.error('Error saving courses:', e);
+            console.log('Server sync failed, saved to localStorage only');
         }
     }
 
