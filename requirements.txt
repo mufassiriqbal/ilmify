@@ -1,0 +1,20 @@
+# Ilmify - Python Dependencies
+# Core dependencies for the offline knowledge server
+
+# No external dependencies required for basic server
+# Python standard library is sufficient
+
+# Optional: For production deployment
+# gunicorn==21.2.0
+# uvicorn==0.24.0
+
+# Optional: For enhanced PDF processing
+# PyPDF2==3.0.1
+# pdfplumber==0.10.3
+
+# Optional: For database support (future)
+# sqlite3 is built into Python
+
+# Optional: For async support
+# aiohttp==3.9.1
+# aiofiles==23.2.1
