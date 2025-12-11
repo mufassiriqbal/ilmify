@@ -57,6 +57,11 @@ async function loadMetadata() {
             ...r,
             filepath: paths.contentPrefix + r.filepath
         }));
+        
+        // Filter out deleted resources
+        const deletedResources = JSON.parse(localStorage.getItem('ilmify_deleted_resources') || '[]');
+        allResources = allResources.filter(r => !deletedResources.includes(r.id));
+        
         console.log(`Loaded ${allResources.length} resources from ${paths.metadata}`);
     } catch (error) {
         console.error('Error loading metadata:', error);
@@ -149,15 +154,10 @@ function createResourceCard(resource) {
 
     // Check if user is faculty for delete button
     const isFaculty = window.IlmifyAuth && window.IlmifyAuth.isFaculty();
-    const deleteBtn = isFaculty ? `
-        <button class="delete-resource-btn" onclick="event.preventDefault(); event.stopPropagation(); openDeleteModal(${resource.id}, '${escapeHtml(resource.title).replace(/'/g, "\\'")}')">
-            🗑️
-        </button>
-    ` : '';
 
     card.dataset.resourceId = resource.id;
+    card.dataset.filepath = resource.filepath;
     card.innerHTML = `
-        ${isFaculty ? '<div class="faculty-controls">' + deleteBtn + '</div>' : ''}
         <div class="resource-icon">${icon}</div>
         <div class="resource-info">
             <h4 class="resource-title">${escapeHtml(resource.title)}</h4>
@@ -166,8 +166,13 @@ function createResourceCard(resource) {
                 <span class="resource-category">${categoryLabel}</span>
             </div>
         </div>
-        <div class="resource-download">
-            <span class="download-icon">⬇️</span>
+        <div class="resource-actions">
+            ${isFaculty ? `<button class="action-btn delete-btn" onclick="event.preventDefault(); event.stopPropagation(); openDeleteModal(${resource.id}, '${escapeHtml(resource.title).replace(/'/g, "\\'")}', '${resource.filepath}')" title="Delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </button>` : ''}
+            <span class="action-btn download-btn" title="Download">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </span>
         </div>
     `;
 

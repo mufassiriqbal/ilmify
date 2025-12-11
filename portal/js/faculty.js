@@ -4,6 +4,41 @@
  */
 
 // ============================================
+// Toast Notification System
+// ============================================
+function showToast(message, type = 'info') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ',
+        warning: '⚠'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ============================================
 // Global Variables
 // ============================================
 let selectedFile = null;
@@ -267,7 +302,9 @@ function showUploadError(message) {
 // ============================================
 // Delete Resource Functions
 // ============================================
-function openDeleteModal(resourceId, resourceTitle) {
+let resourceFilepath = null;
+
+function openDeleteModal(resourceId, resourceTitle, filepath) {
     // Check if user is faculty or admin
     const session = IlmifyAuth.getSession();
     if (!session || (session.role !== 'faculty' && session.role !== 'admin' && !session.isAdmin)) {
@@ -280,6 +317,7 @@ function openDeleteModal(resourceId, resourceTitle) {
     }
 
     resourceToDelete = resourceId;
+    resourceFilepath = filepath || null;
     document.getElementById('deleteResourceName').textContent = `"${resourceTitle}"`;
     const modal = document.getElementById('deleteModal');
     modal.style.display = 'flex';
@@ -308,25 +346,56 @@ function setupDeleteConfirmation() {
     });
 }
 
-function deleteResource(resourceId) {
-    // Remove from local storage
-    let localResources = JSON.parse(localStorage.getItem('ilmify_local_resources') || '[]');
-    localResources = localResources.filter(r => r.id !== resourceId);
-    localStorage.setItem('ilmify_local_resources', JSON.stringify(localResources));
-
-    // Show instruction to delete actual file
-    alert('📝 Resource marked for deletion.\n\nTo complete removal:\n1. Delete the file from the content folder\n2. Run python indexer.py to update');
+async function deleteResource(resourceId) {
+    // Try to delete via server API
+    try {
+        const response = await fetch('/api/delete-resource', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: resourceId, filepath: resourceFilepath })
+        });
+        
+        if (response.ok) {
+            showToast('Resource deleted successfully!', 'success');
+        } else {
+            // Server delete not available, remove from metadata manually
+            await removeFromMetadata(resourceId);
+        }
+    } catch (e) {
+        // Server API not available, remove from metadata
+        await removeFromMetadata(resourceId);
+    }
 
     closeDeleteModal();
     
     // Refresh display
-    if (typeof loadMetadata === 'function') {
-        loadMetadata().then(() => {
-            updateCategoryCounts();
-            displayResources(allResources);
-        });
-    } else {
+    setTimeout(() => {
         location.reload();
+    }, 500);
+}
+
+async function removeFromMetadata(resourceId) {
+    try {
+        const paths = window.location.pathname.includes('/portal/') 
+            ? { metadata: 'data/metadata.json' }
+            : { metadata: 'portal/data/metadata.json' };
+        
+        const response = await fetch(paths.metadata);
+        if (response.ok) {
+            let resources = await response.json();
+            resources = resources.filter(r => r.id !== resourceId);
+            
+            // Store in localStorage that this resource is deleted
+            let deletedResources = JSON.parse(localStorage.getItem('ilmify_deleted_resources') || '[]');
+            if (!deletedResources.includes(resourceId)) {
+                deletedResources.push(resourceId);
+                localStorage.setItem('ilmify_deleted_resources', JSON.stringify(deletedResources));
+            }
+            
+            showToast('Resource hidden. Delete the file manually to permanently remove.', 'info');
+        }
+    } catch (e) {
+        console.error('Failed to update metadata:', e);
     }
 }
 

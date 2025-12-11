@@ -495,18 +495,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--primary-dark);
 }
 
-.resource-download {
-    flex-shrink: 0;
-    font-size: 1.5rem;
-    opacity: 0.6;
-    transition: var(--transition);
-}
-
-.resource-card:hover .resource-download {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
 /* No results message */
 .no-results {
     text-align: center;

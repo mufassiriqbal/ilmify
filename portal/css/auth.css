@@ -775,34 +775,53 @@
 }
 
 /* ================================
-   Faculty Controls on Resource Cards
+   Resource Card Actions
    ================================ */
-.faculty-controls {
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
+.resource-actions {
     display: flex;
-    gap: var(--spacing-xs);
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
-.delete-resource-btn {
-    background: rgba(231, 76, 60, 0.1);
-    border: none;
-    color: #e74c3c;
-    width: 32px;
-    height: 32px;
+.action-btn {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    cursor: pointer;
-    font-size: 0.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
 }
 
-.delete-resource-btn:hover {
+.download-btn {
+    color: #0A1F44;
+    background: rgba(10, 31, 68, 0.08);
+}
+
+.download-btn:hover {
+    background: #0A1F44;
+    color: white;
+    transform: scale(1.1);
+}
+
+.delete-btn {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
+}
+
+.delete-btn:hover {
     background: #e74c3c;
     color: white;
+    transform: scale(1.1);
+}
+
+.action-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .resource-card {
@@ -2114,4 +2133,56 @@
         flex-direction: column;
         gap: var(--spacing-xs);
     }
+}
+
+/* ================================
+   Toast Notifications
+   ================================ */
+.toast-notification {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10001;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-success {
+    background: #27ae60;
+}
+
+.toast-error {
+    background: #e74c3c;
+}
+
+.toast-info {
+    background: #0A1F44;
+}
+
+.toast-warning {
+    background: #f39c12;
+}
+
+.toast-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.toast-message {
+    max-width: 300px;
 }
