@@ -25,12 +25,29 @@
                 <h1>Ilmify</h1>
                 <p class="tagline">Education That Reaches You</p>
             </div>
-            <!-- User Menu -->
-            <div class="user-menu" id="userMenu">
-                <!-- Will be populated by JavaScript -->
+            <!-- Notification Bell & User Menu -->
+            <div class="header-actions">
+                <div class="notification-bell" id="notificationBell" onclick="toggleNotificationPanel()">
+                    <span class="bell-icon">🔔</span>
+                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <!-- Will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- Notification Panel (Dropdown) -->
+    <div class="notification-panel" id="notificationPanel" style="display: none;">
+        <div class="notification-panel-header">
+            <h3>🔔 Notifications</h3>
+            <button onclick="clearAllNotifications()" class="clear-all-btn">Clear All</button>
+        </div>
+        <div class="notification-panel-body" id="notificationPanelBody">
+            <p class="no-notifications">No notifications yet</p>
+        </div>
+    </div>
 
     <main class="main-content">
         <div class="container">
@@ -42,6 +59,29 @@
                     </button>
                     <button class="manage-btn" id="manageUsersBtn" onclick="openUserModal()" style="display: none;">
                         👥 Manage Users
+                    </button>
+                    <button class="notify-btn" id="notifyUsersBtn" onclick="openNotificationModal()" style="display: none;">
+                        📢 Send Notification
+                    </button>
+                </div>
+                <!-- Admin Stats Panel (Only visible to admin) -->
+                <div class="admin-stats-panel" id="adminStatsPanel" style="display: none;">
+                    <div class="stats-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="activeUsersCount">0</span>
+                            <span class="stat-label">Active Users</span>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalSessionsCount">0</span>
+                            <span class="stat-label">Total Sessions</span>
+                        </div>
+                    </div>
+                    <button class="refresh-stats-btn" onclick="refreshUserStats()" title="Refresh Stats">
+                        🔄
                     </button>
                 </div>
             </section>
@@ -85,28 +125,83 @@
                         <p>صحت کے رہنما</p>
                         <span class="resource-count" id="health-guides-count">0 resources</span>
                     </button>
+
+                    <button class="category-card dictionary-card" onclick="openDictionary()">
+                        <div class="category-icon">📖</div>
+                        <h3>English Dictionary</h3>
+                        <p>انگلش لغت</p>
+                        <span class="resource-count">Learn words</span>
+                    </button>
+
+                    <button class="category-card courses-card" onclick="window.location.href='courses.html'">
+                        <div class="category-icon">🎓</div>
+                        <h3>Interactive Courses</h3>
+                        <p>انٹرایکٹو کورسز</p>
+                        <span class="resource-count">Learn step by step</span>
+                    </button>
+
+                    <button class="category-card wikipedia-card coming-soon-card" onclick="showComingSoon('Wikipedia')">
+                        <div class="category-icon">🌐</div>
+                        <h3>Wikipedia</h3>
+                        <p>ویکیپیڈیا</p>
+                        <span class="resource-count coming-soon-badge">Coming Soon</span>
+                    </button>
+
+                    <button class="category-card gpt-card coming-soon-card" onclick="showComingSoon('AI Assistant')">
+                        <div class="category-icon">🤖</div>
+                        <h3>AI Assistant</h3>
+                        <p>اے آئی اسسٹنٹ</p>
+                        <span class="resource-count coming-soon-badge">Coming Soon</span>
+                    </button>
                 </div>
             </section>
 
-            <!-- Resources Section -->
-            <section class="resources-section" id="resourcesSection">
+            <!-- Resources Section (Hidden initially) -->
+            <section class="resources-section" id="resourcesSection" style="display: none;">
                 <div class="resources-header">
-                    <h2 class="section-title" id="resourcesTitle">All Resources</h2>
-                    <button class="back-btn" id="backBtn" style="display: none;">
+                    <button class="back-btn" id="backBtn" onclick="hideResources()">
                         ← Back to Categories
                     </button>
+                    <h2 class="section-title" id="resourcesTitle">All Resources</h2>
                 </div>
                 <div class="resources-grid" id="resourcesGrid">
-                    <!-- Resources will be dynamically loaded here -->
+                    <!-- Resources will be populated here -->
                 </div>
                 <div class="no-results" id="noResults" style="display: none;">
                     <span class="no-results-icon">🔍</span>
-                    <p>No resources found. Try a different search term.</p>
-                    <p>کوئی نتائج نہیں ملے۔ دوسرے الفاظ سے تلاش کریں۔</p>
+                    <p>No resources found</p>
+                    <p>کوئی وسائل نہیں ملے</p>
                 </div>
             </section>
+
         </div>
     </main>
+
+    <!-- Coming Soon Modal -->
+    <div class="modal-overlay" id="comingSoonModal" style="display: none;">
+        <div class="modal coming-soon-modal">
+            <div class="modal-header coming-soon-header">
+                <h2 id="comingSoonTitle">🚀 Coming Soon</h2>
+                <button class="modal-close" onclick="closeComingSoon()">✕</button>
+            </div>
+            <div class="modal-body coming-soon-body">
+                <div class="coming-soon-content">
+                    <div class="coming-soon-icon" id="comingSoonIcon">🌐</div>
+                    <h3 id="comingSoonFeature">Wikipedia</h3>
+                    <p>This feature is currently under development and will be available soon!</p>
+                    <p class="urdu-text">یہ فیچر ابھی ڈویلپمنٹ میں ہے اور جلد دستیاب ہوگا!</p>
+                    <div class="coming-soon-features">
+                        <h4>What to expect:</h4>
+                        <ul id="comingSoonFeaturesList">
+                            <li>📚 Access offline Wikipedia articles</li>
+                            <li>🔍 Search millions of topics</li>
+                            <li>🌍 Educational content in multiple languages</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Upload Modal (Faculty Only) -->
     <div class="modal-overlay" id="uploadModal" style="display: none;">
@@ -349,8 +444,223 @@
         </div>
     </div>
 
+    <!-- Admin Notification Modal -->
+    <div class="modal-overlay" id="notificationModal" style="display: none;">
+        <div class="modal notification-modal">
+            <div class="modal-header notification-modal-header">
+                <h2>📢 Send Notification to All Users</h2>
+                <button class="modal-close" onclick="closeNotificationModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationForm" onsubmit="sendNotification(event)">
+                    <div class="form-group">
+                        <label for="notificationTitle">Notification Title *</label>
+                        <input type="text" id="notificationTitle" placeholder="e.g., New Course Available!" required maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationMessage">Message *</label>
+                        <textarea id="notificationMessage" rows="3" placeholder="Enter your message..." required maxlength="200"></textarea>
+                        <small id="notificationCharCount">0/200 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationType">Notification Type</label>
+                        <select id="notificationType">
+                            <option value="info">ℹ️ Information</option>
+                            <option value="success">✅ Success / Good News</option>
+                            <option value="warning">⚠️ Warning / Alert</option>
+                            <option value="announcement">📣 Announcement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationDuration">Display Duration</label>
+                        <select id="notificationDuration">
+                            <option value="3000">3 seconds</option>
+                            <option value="5000" selected>5 seconds</option>
+                            <option value="7000">7 seconds</option>
+                            <option value="10000">10 seconds</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeNotificationModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">📢 Send to All Users</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Notification Popup -->
+    <div class="global-notification-container" id="globalNotificationContainer"></div>
+
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Fullscreen Course Viewer -->
+    <div class="course-fullscreen" id="courseViewerModal" style="display: none;">
+        <div class="course-fullscreen-header">
+            <button class="course-back-btn" onclick="IlmifyCourses.closeCourseViewer()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Courses
+            </button>
+            <h1 id="courseViewerTitle">Course Title</h1>
+            <div class="course-progress-header">
+                <span id="courseProgressText">0%</span>
+                <div class="progress-bar-header">
+                    <div class="progress-fill-header" id="courseProgressBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="course-fullscreen-body">
+            <!-- Lesson Content Area -->
+            <div class="lesson-content-fullscreen" id="lessonContent">
+                <!-- Lesson content will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Fixed Bottom Navigation -->
+        <div class="course-fullscreen-nav">
+            <button class="nav-btn nav-prev" id="prevLessonBtn" onclick="IlmifyCourses.previousLesson()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                Previous
+            </button>
+            <button class="nav-btn nav-complete" id="completeLessonBtn" onclick="IlmifyCourses.markComplete()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                <span id="completeBtnText">Complete</span>
+            </button>
+            <button class="nav-btn nav-next" id="nextLessonBtn" onclick="IlmifyCourses.nextLesson()">
+                Next
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Lessons Sidebar (toggleable) -->
+        <div class="lessons-sidebar" id="lessonsSidebar">
+            <div class="sidebar-header">
+                <h3>📚 Lessons</h3>
+                <button class="sidebar-close" onclick="IlmifyCourses.toggleSidebar()">✕</button>
+            </div>
+            <div class="lessons-list" id="courseLessonsList">
+                <!-- Lessons will be listed here -->
+            </div>
+        </div>
+        
+        <!-- Toggle Sidebar Button -->
+        <button class="toggle-sidebar-btn" onclick="IlmifyCourses.toggleSidebar()" title="Show Lessons">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Course Create/Edit Modal -->
+    <div class="modal-overlay" id="courseCreateModal" style="display: none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 id="courseModalTitle">➕ Create New Course</h2>
+                <button class="modal-close" onclick="IlmifyCourses.closeCourseCreateModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm" onsubmit="IlmifyCourses.saveCourse(event)">
+                    <input type="hidden" id="courseId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseTitle">Course Title *</label>
+                            <input type="text" id="courseTitle" required placeholder="e.g., Introduction to Physics">
+                        </div>
+                        <div class="form-group">
+                            <label for="courseCategory">Category</label>
+                            <select id="courseCategory">
+                                <option value="Science">Science</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="English">English</option>
+                                <option value="Urdu">Urdu</option>
+                                <option value="Social Studies">Social Studies</option>
+                                <option value="Islamic Studies">Islamic Studies</option>
+                                <option value="Computer">Computer</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDescription">Description</label>
+                        <textarea id="courseDescription" rows="3" placeholder="Brief description of the course..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseThumbnail">Thumbnail Emoji</label>
+                        <input type="text" id="courseThumbnail" placeholder="e.g., 🔬 📐 📖" maxlength="2" value="📚">
+                    </div>
+                    
+                    <!-- Lessons Section -->
+                    <div class="lessons-editor">
+                        <div class="lessons-header">
+                            <h3>📋 Lessons</h3>
+                            <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.addLessonModal()">➕ Add Lesson</button>
+                        </div>
+                        <div id="lessonsListEditor" class="lessons-list-editor">
+                            <!-- Lessons will be listed here -->
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeCourseCreateModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="saveCourseBtn">Create Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Edit Modal -->
+    <div class="modal-overlay" id="lessonEditModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="lessonModalTitle">➕ Add Lesson</h2>
+                <button class="modal-close" onclick="IlmifyCourses.closeLessonEditModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="lessonEditForm" onsubmit="event.preventDefault(); IlmifyCourses.saveLesson();">
+                    <input type="hidden" id="lessonId">
+                    <div class="form-group">
+                        <label for="lessonTitle">Lesson Title *</label>
+                        <input type="text" id="lessonTitle" required placeholder="e.g., Chapter 1: Introduction">
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonTypeInput">Content Type *</label>
+                        <select id="lessonTypeInput" onchange="IlmifyCourses.toggleLessonType(this.value)">
+                            <option value="text">📝 Text Content</option>
+                            <option value="video">🎬 Video (URL)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="lessonTextGroup">
+                        <label for="lessonContentInput">Content</label>
+                        <textarea id="lessonContentInput" rows="6" placeholder="Enter lesson content here... HTML is supported."></textarea>
+                    </div>
+                    <div class="form-group" id="lessonVideoGroup" style="display: none;">
+                        <label for="lessonVideoUrl">Video URL</label>
+                        <input type="url" id="lessonVideoUrl" placeholder="https://www.youtube.com/embed/...">
+                        <small>Use YouTube embed URL or direct video URL</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonDuration">Duration (minutes)</label>
+                        <input type="number" id="lessonDuration" min="1" value="10" placeholder="10">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeLessonEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Lesson</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="portal/js/main.js"></script>
     <script src="portal/js/faculty.js"></script>
@@ -397,19 +707,408 @@
             const session = IlmifyAuth.getSession();
             const facultyPanel = document.getElementById('facultyPanel');
             const manageUsersBtn = document.getElementById('manageUsersBtn');
+            const notifyUsersBtn = document.getElementById('notifyUsersBtn');
+            const createCourseBtn = document.getElementById('createCourseBtn');
             
             // Show faculty panel for admin and faculty
             if (session && (session.isAdmin || session.role === 'faculty' || session.role === 'admin')) {
                 facultyPanel.style.display = 'block';
                 
-                // Only show manage users button for admin
+                // Show create course button for faculty and admin
+                if (createCourseBtn) {
+                    createCourseBtn.style.display = 'inline-flex';
+                }
+                
+                // Only show manage users and notify buttons for admin
                 if (manageUsersBtn) {
                     manageUsersBtn.style.display = session.isAdmin ? 'flex' : 'none';
                 }
+                if (notifyUsersBtn) {
+                    notifyUsersBtn.style.display = session.isAdmin ? 'flex' : 'none';
+                }
+                
+                // Show admin stats panel only for admin
+                const adminStatsPanel = document.getElementById('adminStatsPanel');
+                if (adminStatsPanel) {
+                    if (session.isAdmin) {
+                        adminStatsPanel.style.display = 'flex';
+                        initAdminStats();
+                    } else {
+                        adminStatsPanel.style.display = 'none';
+                    }
+                }
             } else {
                 facultyPanel.style.display = 'none';
+                if (createCourseBtn) {
+                    createCourseBtn.style.display = 'none';
+                }
+            }
+            
+            // Start checking for notifications
+            checkForNotifications();
+            setInterval(checkForNotifications, 3000);
+        }
+
+        // ==================== Notification System ====================
+        const NOTIFICATION_KEY = 'ilmify_global_notifications';
+        const NOTIFICATION_SEEN_KEY = 'ilmify_notifications_seen';
+        let notificationCheckInterval = null;
+
+        function openNotificationModal() {
+            document.getElementById('notificationModal').style.display = 'flex';
+            document.getElementById('notificationTitle').value = '';
+            document.getElementById('notificationMessage').value = '';
+            document.getElementById('notificationCharCount').textContent = '0/200 characters';
+            
+            // Add character counter
+            document.getElementById('notificationMessage').addEventListener('input', function() {
+                document.getElementById('notificationCharCount').textContent = this.value.length + '/200 characters';
+            });
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+
+        function sendNotification(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('notificationTitle').value.trim();
+            const message = document.getElementById('notificationMessage').value.trim();
+            const type = document.getElementById('notificationType').value;
+            const duration = parseInt(document.getElementById('notificationDuration').value);
+            
+            if (!title || !message) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            const notification = {
+                id: Date.now(),
+                title,
+                message,
+                type,
+                duration,
+                timestamp: Date.now(),
+                sentBy: IlmifyAuth.getSession()?.name || 'Admin'
+            };
+
+            // Store notification in localStorage for all users
+            const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
+            notifications.push(notification);
+            // Keep only last 20 notifications
+            while (notifications.length > 20) {
+                notifications.shift();
+            }
+            localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notifications));
+
+            closeNotificationModal();
+            showToast('Notification sent to all users!', 'success');
+            
+            // Show the notification immediately for the sender too
+            displayGlobalNotification(notification);
+            addToNotificationPanel(notification);
+            updateNotificationBadge();
+        }
+
+        // Listen for localStorage changes (real-time sync between tabs/windows)
+        window.addEventListener('storage', function(e) {
+            if (e.key === NOTIFICATION_KEY) {
+                const notifications = JSON.parse(e.newValue || '[]');
+                const seenIds = JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || '[]');
+                
+                // Find new notifications
+                notifications.forEach(notification => {
+                    if (!seenIds.includes(notification.id)) {
+                        displayGlobalNotification(notification);
+                        addToNotificationPanel(notification);
+                    }
+                });
+                updateNotificationBadge();
+            }
+        });
+
+        function checkForNotifications() {
+            const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
+            const seenIds = JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || '[]');
+            
+            let newCount = 0;
+            notifications.forEach(notification => {
+                if (!seenIds.includes(notification.id)) {
+                    // Only show popup for notifications less than 30 seconds old
+                    if (Date.now() - notification.timestamp < 30000) {
+                        displayGlobalNotification(notification);
+                    }
+                    addToNotificationPanel(notification);
+                    newCount++;
+                }
+            });
+            
+            updateNotificationBadge();
+        }
+
+        function displayGlobalNotification(notification) {
+            const container = document.getElementById('globalNotificationContainer');
+            if (!container) return;
+
+            // Check if already displayed
+            if (container.querySelector(`[data-notif-id="${notification.id}"]`)) return;
+
+            const typeIcons = {
+                'info': 'ℹ️',
+                'success': '✅',
+                'warning': '⚠️',
+                'announcement': '📣'
+            };
+
+            const notifEl = document.createElement('div');
+            notifEl.className = `global-notification notification-${notification.type}`;
+            notifEl.setAttribute('data-notif-id', notification.id);
+            notifEl.innerHTML = `
+                <div class="notification-icon">${typeIcons[notification.type] || '📢'}</div>
+                <div class="notification-content">
+                    <h4>${notification.title}</h4>
+                    <p>${notification.message}</p>
+                    <span class="notification-sender">From: ${notification.sentBy}</span>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+
+            container.appendChild(notifEl);
+
+            // Animate in
+            setTimeout(() => notifEl.classList.add('show'), 10);
+
+            // Mark as seen
+            markNotificationSeen(notification.id);
+
+            // Auto-remove after duration
+            setTimeout(() => {
+                notifEl.classList.remove('show');
+                setTimeout(() => notifEl.remove(), 300);
+            }, notification.duration || 5000);
+        }
+
+        // Notification Panel Functions
+        function toggleNotificationPanel() {
+            const panel = document.getElementById('notificationPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                loadNotificationPanel();
+                // Mark all as read when opening
+                markAllNotificationsRead();
+            } else {
+                panel.style.display = 'none';
             }
         }
+
+        function loadNotificationPanel() {
+            const body = document.getElementById('notificationPanelBody');
+            const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
+            
+            if (notifications.length === 0) {
+                body.innerHTML = '<p class="no-notifications">No notifications yet</p>';
+                return;
+            }
+
+            // Sort by timestamp descending (newest first)
+            notifications.sort((a, b) => b.timestamp - a.timestamp);
+
+            const typeIcons = {
+                'info': 'ℹ️',
+                'success': '✅',
+                'warning': '⚠️',
+                'announcement': '📣'
+            };
+
+            let html = '';
+            notifications.forEach(notification => {
+                const timeAgo = getTimeAgo(notification.timestamp);
+                html += `
+                    <div class="notification-panel-item notification-${notification.type}">
+                        <span class="panel-notif-icon">${typeIcons[notification.type] || '📢'}</span>
+                        <div class="panel-notif-content">
+                            <strong>${notification.title}</strong>
+                            <p>${notification.message}</p>
+                            <small>${timeAgo} • From ${notification.sentBy}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            body.innerHTML = html;
+        }
+
+        function addToNotificationPanel(notification) {
+            // This adds to the panel if it's open
+            const body = document.getElementById('notificationPanelBody');
+            if (!body) return;
+            
+            // Remove "no notifications" message if present
+            const noNotif = body.querySelector('.no-notifications');
+            if (noNotif) noNotif.remove();
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+            return Math.floor(seconds / 86400) + 'd ago';
+        }
+
+        function markNotificationSeen(id) {
+            const seenIds = JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || '[]');
+            if (!seenIds.includes(id)) {
+                seenIds.push(id);
+                localStorage.setItem(NOTIFICATION_SEEN_KEY, JSON.stringify(seenIds));
+            }
+            updateNotificationBadge();
+        }
+
+        function markAllNotificationsRead() {
+            const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
+            const seenIds = notifications.map(n => n.id);
+            localStorage.setItem(NOTIFICATION_SEEN_KEY, JSON.stringify(seenIds));
+            updateNotificationBadge();
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (!badge) return;
+            
+            const notifications = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || '[]');
+            const seenIds = JSON.parse(localStorage.getItem(NOTIFICATION_SEEN_KEY) || '[]');
+            
+            const unreadCount = notifications.filter(n => !seenIds.includes(n.id)).length;
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function clearAllNotifications() {
+            localStorage.removeItem(NOTIFICATION_KEY);
+            localStorage.removeItem(NOTIFICATION_SEEN_KEY);
+            loadNotificationPanel();
+            updateNotificationBadge();
+            showToast('All notifications cleared', 'info');
+        }
+
+        // Close notification panel when clicking outside
+        document.addEventListener('click', function(e) {
+            const panel = document.getElementById('notificationPanel');
+            const bell = document.getElementById('notificationBell');
+            if (panel && panel.style.display === 'block' && 
+                !panel.contains(e.target) && !bell.contains(e.target)) {
+                panel.style.display = 'none';
+            }
+        });
+        // ==================== End Notification System ====================
+
+        // ==================== Admin User Stats ====================
+        let sessionId = null;
+        let heartbeatInterval = null;
+        let statsRefreshInterval = null;
+
+        // Register session with server and start heartbeat
+        async function initUserSession() {
+            const session = IlmifyAuth.getSession();
+            if (!session) return;
+            
+            try {
+                const response = await fetch('/api/heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: session.userId || session.email,
+                        name: session.name,
+                        role: session.role
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    sessionId = data.session_id;
+                    
+                    // Start heartbeat every 15 seconds
+                    if (heartbeatInterval) clearInterval(heartbeatInterval);
+                    heartbeatInterval = setInterval(sendHeartbeat, 15000);
+                    
+                    console.log('📡 Session registered:', sessionId);
+                }
+            } catch (err) {
+                console.log('Heartbeat unavailable - running in basic mode');
+            }
+        }
+
+        async function sendHeartbeat() {
+            if (!sessionId) return;
+            
+            try {
+                await fetch('/api/heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+            } catch (err) {
+                // Silently fail heartbeat
+            }
+        }
+
+        // Admin stats initialization
+        function initAdminStats() {
+            refreshUserStats();
+            
+            // Refresh stats every 10 seconds
+            if (statsRefreshInterval) clearInterval(statsRefreshInterval);
+            statsRefreshInterval = setInterval(refreshUserStats, 10000);
+        }
+
+        async function refreshUserStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const data = await response.json();
+                
+                const activeUsersEl = document.getElementById('activeUsersCount');
+                const totalSessionsEl = document.getElementById('totalSessionsCount');
+                
+                if (activeUsersEl) {
+                    activeUsersEl.textContent = data.active_users || 0;
+                    activeUsersEl.classList.add('stat-updated');
+                    setTimeout(() => activeUsersEl.classList.remove('stat-updated'), 500);
+                }
+                
+                if (totalSessionsEl) {
+                    totalSessionsEl.textContent = data.total_unique_users || data.total_requests || 0;
+                    totalSessionsEl.classList.add('stat-updated');
+                    setTimeout(() => totalSessionsEl.classList.remove('stat-updated'), 500);
+                }
+            } catch (err) {
+                // Fallback: Show at least 1 active user (the current user)
+                const activeUsersEl = document.getElementById('activeUsersCount');
+                if (activeUsersEl && activeUsersEl.textContent === '0') {
+                    activeUsersEl.textContent = '1';
+                }
+                console.log('Stats API unavailable - using fallback');
+            }
+        }
+
+        // Initialize session tracking on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initUserSession, 1000); // Give auth time to load
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            if (statsRefreshInterval) clearInterval(statsRefreshInterval);
+        });
+        // ==================== End Admin User Stats ====================
 
         function handleLogout() {
             IlmifyAuth.logout();
@@ -438,5 +1137,254 @@
         
         window.showToast = showToast;
     </script>
+
+    <!-- Dictionary Modal -->
+    <div class="modal-overlay" id="dictionaryModal" style="display: none;">
+        <div class="modal modal-large dict-modal">
+            <div class="modal-header">
+                <h2>📖 English Dictionary</h2>
+                <button class="modal-close" onclick="closeDictionary()">✕</button>
+            </div>
+            <div class="modal-body dict-body">
+                <!-- Search Section -->
+                <div class="dict-search-section">
+                    <input type="text" id="dictSearchInput" class="dict-search-input" placeholder="Search for a word..." onkeypress="if(event.key==='Enter') searchDictionary()">
+                    <button class="btn-primary" onclick="searchDictionary()">🔍 Search</button>
+                </div>
+
+                <!-- Word of the Day -->
+                <div class="dict-wotd" id="dictWOTD">
+                    <!-- Will be populated by JS -->
+                </div>
+
+                <!-- Search Results -->
+                <div class="dict-results" id="dictResults">
+                    <div class="dict-welcome">
+                        <h3>Welcome to Ilmify Dictionary! 📚</h3>
+                        <p>Search for English words to see their definitions, examples, and Urdu translations.</p>
+                        <p>Try searching: education, knowledge, science, or any other word!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="portal/js/dictionary.js"></script>
+    <script>
+        // Dictionary Functions
+        async function openDictionary() {
+            const modal = document.getElementById('dictionaryModal');
+            modal.style.display = 'flex';
+            modal.classList.add('modal-animate');
+            document.body.style.overflow = 'hidden';
+
+            const wotdContainer = document.getElementById('dictWOTD');
+            if (window.IlmifyDictionary && wotdContainer) {
+                wotdContainer.innerHTML = '<div class="dict-loading">Loading word of the day…</div>';
+                try {
+                    await window.IlmifyDictionary.ready();
+                    const wotd = await window.IlmifyDictionary.getWordOfTheDay();
+                    wotdContainer.innerHTML = `
+                        <h4>📅 Word of the Day</h4>
+                        ${window.IlmifyDictionary.formatEntry(wotd)}
+                    `;
+                } catch (error) {
+                    wotdContainer.innerHTML = '<div class="dict-error">Unable to load word of the day. Please try again.</div>';
+                    console.error('Word of the day load failed:', error);
+                }
+            }
+
+            document.getElementById('dictSearchInput').focus();
+        }
+
+        function closeDictionary() {
+            const modal = document.getElementById('dictionaryModal');
+            modal.classList.remove('modal-animate');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 200);
+        }
+
+        async function searchDictionary() {
+            const input = document.getElementById('dictSearchInput');
+            const query = input.value.trim();
+            const resultsDiv = document.getElementById('dictResults');
+
+            if (!query) {
+                resultsDiv.innerHTML = `<div class="dict-no-results">
+                    <span class="no-results-icon">ℹ️</span>
+                    <p>Please type a word to search.</p>
+                    <p>Examples: education, knowledge, science.</p>
+                </div>`;
+                return;
+            }
+
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '<div class="dict-loading">Searching…</div>';
+            }
+
+            try {
+                await window.IlmifyDictionary.ready();
+                const results = await window.IlmifyDictionary.search(query);
+
+                if (!results || results.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="dict-no-results">
+                            <span class="no-results-icon">🔍</span>
+                            <p>No results found for "${query}"</p>
+                            <p>Try checking the spelling or search for another word.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `<h4>Search Results (${results.length})</h4>`;
+                results.forEach(entry => {
+                    html += window.IlmifyDictionary.formatEntry(entry);
+                });
+
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                console.error('Dictionary search failed:', error);
+                resultsDiv.innerHTML = `
+                    <div class="dict-error">
+                        <p>⚠️ Unable to search the dictionary right now.</p>
+                        <p>Please check your files or try again later.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+    <script>
+        // Coming Soon Modal Functions
+        function showComingSoon(feature) {
+            const modal = document.getElementById('comingSoonModal');
+            const icon = document.getElementById('comingSoonIcon');
+            const title = document.getElementById('comingSoonFeature');
+            const featuresList = document.getElementById('comingSoonFeaturesList');
+            
+            if (feature === 'Wikipedia') {
+                icon.textContent = '🌐';
+                title.textContent = 'Wikipedia';
+                featuresList.innerHTML = `
+                    <li>📚 Access offline Wikipedia articles</li>
+                    <li>🔍 Search millions of topics</li>
+                    <li>🌍 Educational content in multiple languages</li>
+                    <li>💾 Works without internet connection</li>
+                `;
+            } else if (feature === 'AI Assistant') {
+                icon.textContent = '🤖';
+                title.textContent = 'AI Assistant';
+                featuresList.innerHTML = `
+                    <li>💬 Ask questions in natural language</li>
+                    <li>📖 Get help with homework</li>
+                    <li>🧠 Learn concepts explained simply</li>
+                    <li>🔮 Powered by offline AI technology</li>
+                `;
+            }
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeComingSoon() {
+            const modal = document.getElementById('comingSoonModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Resources Section Functions
+        function hideResources() {
+            document.getElementById('resourcesSection').style.display = 'none';
+            document.querySelector('.categories-section').style.display = 'block';
+        }
+        
+        // Override category card clicks to show resources section
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryCards = document.querySelectorAll('.category-card[data-category]');
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    if (category) {
+                        showResourcesForCategory(category);
+                    }
+                });
+            });
+        });
+        
+        function showResourcesForCategory(category) {
+            // Show resources section
+            document.getElementById('resourcesSection').style.display = 'block';
+            document.querySelector('.categories-section').style.display = 'none';
+            
+            // Filter and display resources
+            const categoryTitles = {
+                'textbooks': 'School Textbooks - نصابی کتابیں',
+                'videos': 'Video Lectures - ویڈیو لیکچرز',
+                'health-guides': 'Health Guides - صحت کے رہنما'
+            };
+            
+            document.getElementById('resourcesTitle').textContent = categoryTitles[category] || category;
+            
+            // Load and display resources
+            loadAndDisplayResources(category);
+        }
+        
+        async function loadAndDisplayResources(category) {
+            const grid = document.getElementById('resourcesGrid');
+            const noResults = document.getElementById('noResults');
+            
+            grid.innerHTML = '<div class="loading-resources">Loading resources...</div>';
+            
+            try {
+                const response = await fetch('portal/data/metadata.json');
+                const resources = await response.json();
+                
+                const filtered = resources.filter(r => r.category === category);
+                
+                // Check for deleted resources
+                const deletedResources = JSON.parse(localStorage.getItem('ilmify_deleted_resources') || '[]');
+                const available = filtered.filter(r => !deletedResources.includes(r.id));
+                
+                if (available.length === 0) {
+                    grid.innerHTML = '';
+                    noResults.style.display = 'block';
+                    return;
+                }
+                
+                noResults.style.display = 'none';
+                grid.innerHTML = '';
+                
+                available.forEach(resource => {
+                    const card = document.createElement('a');
+                    card.className = 'resource-card';
+                    card.href = resource.filepath;
+                    card.target = '_blank';
+                    
+                    let icon = '📄';
+                    if (resource.format === 'pdf') icon = '📕';
+                    else if (resource.format === 'mp4' || resource.format === 'video') icon = '🎥';
+                    
+                    card.innerHTML = `
+                        <div class="resource-icon">${icon}</div>
+                        <div class="resource-info">
+                            <h3 class="resource-title">${resource.title}</h3>
+                            <span class="resource-format">${resource.format.toUpperCase()}</span>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                grid.innerHTML = '<div class="error-message">Unable to load resources</div>';
+            }
+        }
+    </script>
+    <script src="portal/js/main.js"></script>
+    <script src="portal/js/faculty.js"></script>
+    <script src="portal/js/chatbot.js"></script>
+    <script src="portal/js/courses.js"></script>
 </body>
 </html>

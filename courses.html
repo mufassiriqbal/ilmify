@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ilmify - Interactive Courses">
+    <title>Courses - Ilmify</title>
+    <link rel="stylesheet" href="portal/css/style.css">
+    <link rel="stylesheet" href="portal/css/auth.css">
+    <script src="portal/js/auth.js"></script>
+    <script>
+        // Check login before page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.IlmifyAuth || !window.IlmifyAuth.isLoggedIn()) {
+                window.location.href = 'portal/login.html';
+            }
+        });
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="index.html" style="display: flex; align-items: center; text-decoration: none; color: inherit; gap: 8px;">
+                    <span class="logo-icon">📚</span>
+                    <div>
+                        <h1>Ilmify</h1>
+                        <p class="tagline">Interactive Courses</p>
+                    </div>
+                </a>
+            </div>
+            <!-- User Menu -->
+            <div class="user-menu" id="userMenu">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Back Button & Header -->
+            <div class="courses-page-header">
+                <a href="index.html" class="back-to-home">
+                    <span>←</span> Back to Home
+                </a>
+                <div class="courses-page-title">
+                    <h1>🎓 Interactive Courses / انٹرایکٹو کورسز</h1>
+                    <p>Learn at your own pace with structured lessons</p>
+                </div>
+            </div>
+
+            <!-- Faculty Control Panel (Only visible to faculty/admin) -->
+            <section class="faculty-panel courses-faculty-panel" id="facultyPanel" style="display: none;">
+                <button class="btn btn-primary create-course-btn" onclick="IlmifyCourses.openCreateModal()">
+                    ➕ Create New Course
+                </button>
+            </section>
+
+            <!-- Filter/Search Bar -->
+            <section class="courses-filter-section">
+                <div class="courses-search-box">
+                    <input 
+                        type="text" 
+                        id="courseSearchInput" 
+                        placeholder="Search courses... / کورس تلاش کریں..."
+                        oninput="filterCourses()"
+                    >
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="courses-category-filter">
+                    <select id="categoryFilter" onchange="filterCourses()">
+                        <option value="all">All Categories</option>
+                        <option value="Science">🔬 Science</option>
+                        <option value="Mathematics">🔢 Mathematics</option>
+                        <option value="Health">🏥 Health</option>
+                        <option value="Languages">🗣️ Languages</option>
+                        <option value="Technology">💻 Technology</option>
+                        <option value="Other">📚 Other</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Courses Grid -->
+            <section class="courses-page-section">
+                <div class="courses-stats">
+                    <span id="coursesCountDisplay">0 Courses Available</span>
+                </div>
+                <div class="courses-grid-page" id="coursesGridPage">
+                    <!-- Courses will be dynamically loaded here -->
+                </div>
+                <div class="no-courses-found" id="noCoursesFound" style="display: none;">
+                    <span class="empty-icon">📭</span>
+                    <p>No courses found matching your search.</p>
+                    <p>کوئی کورس نہیں ملا۔</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Course Create/Edit Modal -->
+    <div class="modal-overlay" id="courseCreateModal" style="display: none;">
+        <div class="modal course-modal">
+            <div class="modal-header">
+                <h2 id="courseModalTitle">➕ Create New Course</h2>
+                <button class="modal-close" onclick="IlmifyCourses.closeCourseCreateModal()">✕</button>
+            </div>
+            <form id="courseForm" onsubmit="IlmifyCourses.saveCourse(event)">
+                <input type="hidden" id="courseId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="courseTitle">Course Title *</label>
+                        <input type="text" id="courseTitle" required placeholder="Enter course title">
+                    </div>
+                    <div class="form-group">
+                        <label for="courseThumbnail">Thumbnail Emoji</label>
+                        <input type="text" id="courseThumbnail" value="📚" maxlength="4" class="emoji-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="courseDescription">Description</label>
+                    <textarea id="courseDescription" rows="3" placeholder="Brief course description..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="courseCategory">Category</label>
+                    <select id="courseCategory">
+                        <option value="Science">🔬 Science</option>
+                        <option value="Mathematics">🔢 Mathematics</option>
+                        <option value="Health">🏥 Health</option>
+                        <option value="Languages">🗣️ Languages</option>
+                        <option value="Technology">💻 Technology</option>
+                        <option value="Other">📚 Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Lessons</label>
+                    <div class="lessons-editor" id="lessonsListEditor">
+                        <!-- Lessons will be listed here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.addLessonModal()">
+                        ➕ Add Lesson
+                    </button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeCourseCreateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">💾 Save Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lesson Edit Modal -->
+    <div class="modal-overlay" id="lessonEditModal" style="display: none;">
+        <div class="modal lesson-modal">
+            <div class="modal-header">
+                <h2 id="lessonModalTitle">➕ Add Lesson</h2>
+                <button class="modal-close" onclick="IlmifyCourses.closeLessonEditModal()">✕</button>
+            </div>
+            <form id="lessonEditForm" onsubmit="event.preventDefault(); IlmifyCourses.saveLesson();">
+                <input type="hidden" id="lessonId">
+                
+                <div class="form-group">
+                    <label for="lessonTitle">Lesson Title *</label>
+                    <input type="text" id="lessonTitle" required placeholder="Enter lesson title">
+                </div>
+
+                <div class="form-group">
+                    <label for="lessonTypeInput">Lesson Type</label>
+                    <select id="lessonTypeInput" onchange="IlmifyCourses.toggleLessonType(this.value)">
+                        <option value="text">📝 Text/Reading</option>
+                        <option value="video">🎬 Video</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="lessonTextGroup">
+                    <label for="lessonContentInput">Content (HTML supported)</label>
+                    <textarea id="lessonContentInput" rows="8" placeholder="Enter lesson content... HTML tags are supported."></textarea>
+                </div>
+
+                <div class="form-group" id="lessonVideoGroup" style="display: none;">
+                    <label for="lessonVideoUrl">Video URL</label>
+                    <input type="url" id="lessonVideoUrl" placeholder="YouTube URL or direct video link">
+                    <small>Supports YouTube links or direct video URLs</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="lessonDuration">Duration (minutes)</label>
+                    <input type="number" id="lessonDuration" value="10" min="1" max="180">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeLessonEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">💾 Save Lesson</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fullscreen Course Viewer Modal -->
+    <div class="fullscreen-course-viewer" id="courseViewerModal" style="display: none;">
+        <div class="fullscreen-header">
+            <button class="back-btn-fullscreen" onclick="IlmifyCourses.closeCourseViewer()">
+                <span>←</span> Exit Course
+            </button>
+            <h2 id="courseViewerTitle">Course Title</h2>
+            <div class="course-progress-header">
+                <div class="progress-bar-header">
+                    <div class="progress-fill-header" id="courseProgressBar"></div>
+                </div>
+                <span id="courseProgressText">0% Complete</span>
+            </div>
+        </div>
+        
+        <div class="fullscreen-body">
+            <!-- Toggle Sidebar Button -->
+            <button class="toggle-sidebar-btn" onclick="IlmifyCourses.toggleSidebar()" title="Show Lessons">
+                ☰
+            </button>
+            
+            <!-- Lessons Sidebar -->
+            <div class="lessons-sidebar" id="lessonsSidebar">
+                <div class="sidebar-header">
+                    <h3>📚 Lessons</h3>
+                    <button class="close-sidebar-btn" onclick="IlmifyCourses.toggleSidebar()">✕</button>
+                </div>
+                <div class="lessons-list" id="courseLessonsList">
+                    <!-- Lessons will be listed here -->
+                </div>
+            </div>
+            
+            <!-- Lesson Content Area -->
+            <div class="lesson-content-area" id="lessonContent">
+                <!-- Lesson content will be rendered here -->
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="course-fullscreen-nav">
+            <button class="nav-btn nav-prev" id="prevLessonBtn" onclick="IlmifyCourses.previousLesson()">
+                <span>←</span> Previous
+            </button>
+            <button class="nav-btn nav-complete" id="completeLessonBtn" onclick="IlmifyCourses.markComplete()">
+                <span id="completeBtnText">✓ Complete</span>
+            </button>
+            <button class="nav-btn nav-next" id="nextLessonBtn" onclick="IlmifyCourses.nextLesson()">
+                Next <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Global Notification Popup -->
+    <div class="global-notification-container" id="globalNotificationContainer"></div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>🌟 Ilmify - Education That Reaches You</p>
+            <p>تعلیم جو آپ تک پہنچے</p>
+        </div>
+    </footer>
+
+    <script src="portal/js/courses.js"></script>
+    <script>
+        // Update user menu
+        function updateUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            const session = IlmifyAuth.getSession();
+
+            if (session) {
+                const isAdmin = session.isAdmin;
+                const roleIcon = isAdmin ? '👑' : (session.role === 'faculty' ? '👨‍🏫' : '🎓');
+                const roleLabel = isAdmin ? 'Admin' : session.role;
+                const roleBadge = isAdmin ? '<span class="admin-badge">Admin</span>' : 
+                                  (session.role === 'faculty' ? '<span class="faculty-badge">Faculty</span>' : '');
+                
+                userMenu.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-avatar">${roleIcon}</div>
+                        <div>
+                            <div class="user-name">${session.name} ${roleBadge}</div>
+                            <div class="user-role">${roleLabel}</div>
+                        </div>
+                    </div>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                `;
+            } else {
+                window.location.href = 'portal/login.html';
+            }
+        }
+
+        function handleLogout() {
+            IlmifyAuth.logout();
+        }
+
+        function initFacultyFeatures() {
+            const session = IlmifyAuth.getSession();
+            const facultyPanel = document.getElementById('facultyPanel');
+            
+            // Show faculty panel for admin and faculty
+            if (session && (session.isAdmin || session.role === 'faculty' || session.role === 'admin')) {
+                facultyPanel.style.display = 'flex';
+            } else {
+                facultyPanel.style.display = 'none';
+            }
+            
+            // Start checking for notifications
+            checkForNotifications();
+            setInterval(checkForNotifications, 3000);
+        }
+
+        // Notification checking for courses page
+        function checkForNotifications() {
+            const notifications = JSON.parse(localStorage.getItem('ilmify_global_notifications') || '[]');
+            const lastSeen = parseInt(localStorage.getItem('ilmify_last_notification_seen') || '0');
+            
+            notifications.forEach(notification => {
+                if (notification.timestamp > lastSeen) {
+                    displayGlobalNotification(notification);
+                }
+            });
+            
+            if (notifications.length > 0) {
+                localStorage.setItem('ilmify_last_notification_seen', Date.now().toString());
+            }
+        }
+
+        function displayGlobalNotification(notification) {
+            const container = document.getElementById('globalNotificationContainer');
+            if (!container) return;
+
+            const typeIcons = {
+                'info': 'ℹ️',
+                'success': '✅',
+                'warning': '⚠️',
+                'announcement': '📣'
+            };
+
+            const notifEl = document.createElement('div');
+            notifEl.className = `global-notification notification-${notification.type}`;
+            notifEl.innerHTML = `
+                <div class="notification-icon">${typeIcons[notification.type] || '📢'}</div>
+                <div class="notification-content">
+                    <h4>${notification.title}</h4>
+                    <p>${notification.message}</p>
+                    <span class="notification-sender">From: ${notification.sentBy}</span>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+
+            container.appendChild(notifEl);
+            setTimeout(() => notifEl.classList.add('show'), 10);
+
+            setTimeout(() => {
+                notifEl.classList.remove('show');
+                setTimeout(() => notifEl.remove(), 300);
+            }, notification.duration || 5000);
+        }
+
+        // Filter courses based on search and category
+        function filterCourses() {
+            const searchTerm = document.getElementById('courseSearchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            
+            IlmifyCourses.filterAndRenderCourses(searchTerm, category);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserMenu();
+            initFacultyFeatures();
+        });
+    </script>
+</body>
+</html>

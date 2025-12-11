@@ -76,6 +76,20 @@
                         <p>صحت کے رہنما</p>
                         <span class="resource-count" id="health-guides-count">0 resources</span>
                     </button>
+
+                    <button class="category-card" data-category="courses" onclick="document.getElementById('coursesSection').scrollIntoView({behavior: 'smooth'})">
+                        <div class="category-icon">🎓</div>
+                        <h3>Courses</h3>
+                        <p>کورسز</p>
+                        <span class="resource-count" id="courses-count">Interactive learning</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Courses Section -->
+            <section class="courses-section" id="coursesSection">
+                <div id="coursesContainer">
+                    <!-- Courses will be dynamically loaded here -->
                 </div>
             </section>
 
@@ -256,6 +270,147 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Course Viewer Modal -->
+    <div class="modal course-viewer-modal" id="courseViewerModal" style="display: none;">
+        <div class="course-viewer-content">
+            <div class="course-viewer-header">
+                <h3 id="courseViewerTitle">Course Title</h3>
+                <div class="course-progress-header">
+                    <div class="progress-bar-header">
+                        <div class="progress-fill-header" id="courseProgressBar" style="width: 0%"></div>
+                    </div>
+                    <span id="courseProgressText">0% Complete</span>
+                </div>
+                <button class="modal-close" onclick="IlmifyCourses.closeCourseViewer()">✕</button>
+            </div>
+            <div class="course-viewer-body">
+                <div class="course-sidebar">
+                    <h4>📚 Lessons</h4>
+                    <div class="lessons-list" id="courseLessonsList">
+                        <!-- Lessons will be loaded here -->
+                    </div>
+                </div>
+                <div class="course-content" id="lessonContent">
+                    <!-- Lesson content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Create/Edit Modal -->
+    <div class="modal" id="courseCreateModal" style="display: none;">
+        <div class="modal-content course-create-modal">
+            <div class="modal-header">
+                <h3 id="courseCreateTitle">➕ Create New Course</h3>
+                <button class="modal-close" onclick="IlmifyCourses.closeCourseCreateModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="courseForm" onsubmit="IlmifyCourses.saveCourse(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseTitleInput">Course Title *</label>
+                            <input type="text" id="courseTitleInput" required placeholder="e.g., Introduction to Science">
+                        </div>
+                        <div class="form-group">
+                            <label for="courseTitleUrduInput">Title (Urdu)</label>
+                            <input type="text" id="courseTitleUrduInput" placeholder="e.g., سائنس کا تعارف" dir="rtl">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="courseDescInput">Description</label>
+                        <textarea id="courseDescInput" rows="2" placeholder="Brief description of the course..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseCategoryInput">Category</label>
+                            <select id="courseCategoryInput">
+                                <option value="">Select Category</option>
+                                <option value="Science">🔬 Science</option>
+                                <option value="Math">📐 Mathematics</option>
+                                <option value="English">📝 English</option>
+                                <option value="Urdu">📖 Urdu</option>
+                                <option value="Health">🏥 Health</option>
+                                <option value="Islamic Studies">🕌 Islamic Studies</option>
+                                <option value="Pakistan Studies">🇵🇰 Pakistan Studies</option>
+                                <option value="Computer">💻 Computer</option>
+                                <option value="Other">📚 Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="courseInstructorInput">Instructor</label>
+                            <input type="text" id="courseInstructorInput" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="courseThumbnailInput">Emoji Icon</label>
+                            <input type="text" id="courseThumbnailInput" placeholder="📚" maxlength="2">
+                        </div>
+                    </div>
+                    
+                    <div id="lessonsEditorContainer">
+                        <!-- Lessons editor will be loaded here -->
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeCourseCreateModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">💾 Save Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Edit Modal -->
+    <div class="modal" id="lessonEditModal" style="display: none;">
+        <div class="modal-content lesson-edit-modal">
+            <div class="modal-header">
+                <h3 id="lessonEditTitle">➕ Add Lesson</h3>
+                <button class="modal-close" onclick="IlmifyCourses.closeLessonEditModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="lessonEditForm" onsubmit="event.preventDefault(); IlmifyCourses.saveLesson();">
+                    <div class="form-group">
+                        <label for="lessonTitleInput">Lesson Title *</label>
+                        <input type="text" id="lessonTitleInput" required placeholder="e.g., Introduction">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lessonTypeInput">Content Type</label>
+                        <select id="lessonTypeInput" onchange="IlmifyCourses.toggleLessonType(this.value)">
+                            <option value="text">📄 Text/Article</option>
+                            <option value="video">🎬 Video</option>
+                        </select>
+                    </div>
+                    
+                    <div id="lessonTextFields">
+                        <div class="form-group">
+                            <label for="lessonContentInput">Content (HTML supported)</label>
+                            <textarea id="lessonContentInput" rows="8" placeholder="Enter lesson content... You can use HTML tags like <h3>, <p>, <ul>, <li>, <strong>, <em>"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div id="lessonVideoFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="lessonVideoUrlInput">Video URL (from content folder)</label>
+                            <input type="text" id="lessonVideoUrlInput" placeholder="e.g., content/videos/lesson1.mp4">
+                            <small>Upload videos to the content/videos folder first, then enter the path here.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="lessonContentInput2">Video Description (optional)</label>
+                            <textarea id="lessonContentInput2" rows="3" placeholder="Additional notes for this video lesson..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="IlmifyCourses.closeLessonEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">💾 Save Lesson</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Chatbot Floating Action Button -->
     <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()" title="Ask Ilmify Assistant">
         <span class="fab-pulse"></span>
@@ -304,6 +459,7 @@
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
     <script src="js/faculty.js"></script>
+    <script src="js/courses.js"></script>
     <script src="js/chatbot.js"></script>
     <script>
         // Initialize header navigation based on user role

@@ -298,7 +298,7 @@ class CaptivePortalHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
     
-    def log_message(self, fmt, *args):
+    def log_message(self, format_str, *args):
         try:
             if len(args) >= 1 and isinstance(args[0], str):
                 request = args[0]
@@ -307,11 +307,12 @@ class CaptivePortalHandler(http.server.SimpleHTTPRequestHandler):
                     return
                 timestamp = datetime.now().strftime("%H:%M:%S")
                 print(f"🌐 [{timestamp}] {request}")
-        except Exception:
+        except (IndexError, TypeError):
             pass
     
-    def log_error(self, fmt, *args):
-        pass
+    def log_error(self, format_str, *args):
+        # Intentionally suppressed
+        _ = format_str, args
 
 
 class DNSHandler:
@@ -427,8 +428,8 @@ def main():
         print("   Please run this command as Administrator:")
         print("   Right-click PowerShell → 'Run as Administrator'")
         print()
-        print(f"   Or use the regular server on port 8080:")
-        print(f"   python server.py")
+        print("   Or use the regular server on port 8080:")
+        print("   python server.py")
         print()
     except OSError as e:
         if "address already in use" in str(e).lower() or "10048" in str(e):
